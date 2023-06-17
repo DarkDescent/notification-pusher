@@ -1,0 +1,11 @@
+server:
+  run_mode: debug
+  port: 8080
+  read_timeout: 3s
+  write_timeout: 3s
+
+database:
+  connection_string: postgres://test:test@localhost:5432/postgres?sslmode=disable
+
+service:
+  firebase_credentials: 0 # paste in your credentials file from Firebase Admin SDK in base64 format string

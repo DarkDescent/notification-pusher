@@ -1,0 +1,40 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  atlas:
+    image: arigaio/atlas:latest
+    volumes:
+      - ./migrations:/migrations
+    command: migrate apply --url "postgresql://postgres:postgres@db:5432/postgres?sslmode=disable" --dir "file:///migrations"
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  service:
+    build: .
+    container_name: notification-pusher
+    environment:
+      SERVER_RUN_MODE: release
+      SERVER_PORT: 8080
+      DATABASE_CONN_STRING: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
+      FIREBASE_CREDENTIALS: 0 # paste in your credentials file from Firebase Admin SDK in base64 format string
+
+    depends_on:
+      - db
+      - atlas
+    ports:
+      - "8080:8080"
